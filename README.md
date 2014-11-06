@@ -1,4 +1,0 @@
-NodeJsBlueprints
-================
-
-Node.js Blueprints
