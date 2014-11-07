@@ -1,6 +1,8 @@
 var util = require("util");
 var Engine = require("./engine.js");
 
+console.log("ok");
+
 var Class = function() {};
 
 util.inherits(Class,Engine);
