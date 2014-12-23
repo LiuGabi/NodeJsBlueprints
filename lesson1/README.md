@@ -93,3 +93,130 @@ var handleRequest = function(req, res) {
 第一条请求仍然是在5秒后得到响应结果，然而，第二条请求在第一条请求后立刻发出。
 
 #### 在modules中组织代码逻辑
+
+如果我们要写很多代码，迟早会意识到我们的逻辑应该被分成到不同的模块中。在很多语言中，通过类和包来这么做，或者其他语言标准。然而，在JavaScript中，自身并没有类。所有都是对象，在实践中，对象继承对象。在JavaScript中，有几种方式来完成面向对象实现。可以使用原型继承、文本对象或者回调函数。感激的是，Node.js有标准化的方式来定义模块。这个方式就是通过实现CommonJS达成的，CommonJS是一个指定为JavaScript的生态系统的项目。
+
+因此，你想通过提供有用的api方法来封装你的逻辑。如果你能到达这一刻，那么你绝对是在正确的方向。这是很重要的，也许这就是现如今项目中最具挑战性的方面。分解业务和分配功能的功能的能力不总是简单的任务。往往，这种任务被低估了，但是这是良好架构的关键。如果一个模块包含很多依赖关系，使用不同的数据存储操作，或有几种责任，那么，我们很容易犯错。这样的代码不会测试通过的，并且难以维护。即使我们很小心这两样，但代码仍然难以继承和继续使用。这就是为什么为不同的模块定义不同的功能的好处了。在Node.js中通过exports关键字定义模块，参考于module.exports。
+
+#### 创建一个汽车结构应用
+
+使用简单的例子来阐述这个过程。假设我们要建一个构造汽车的应用。我们需要主模块（car）和其他模块，不同模块管理小车的不同部分（轮子、窗户、门等等）。先从定义小车轮子的模块开始，代码如下：
+
+```
+// demo3-wheels.js
+var typeOfTires;
+exports.init = function(type) {
+	typeOfTires = type;
+}
+exports.info = function() {
+	console.log("The car uses " + typeOfTires + " tires.");
+}
+```
+
+上面的代码是demo3-wheels.js的组成部分。包含两个方法。init方法首先会被调用，设置轮胎的类型。info方法只是简单的输出信息。在主文件demo3-car.js中，我们需要使用已提供的api方法获取一个轮子实例。代码如下：
+
+```
+// demo3-car.js
+var wheels = require("./demo3-wheels.js");
+wheels.init("winter");
+wheels.info();
+```
+当你用node demo3-car.js命令运行上面的代码，你将得到下面的输出：
+
+!["Print"](img/test2.jpg)
+
+因此，你想要向外展现的任何事物都应赋予导出对象。注意，typeOfTires是模块内部变量，只能在demo3-wheels.js起作用，而不是car.js。直接应用对象或方法到接口对象是常见的，如下代码：
+
+```
+// demo3-engine.js
+var Class = function() {
+	// ...
+};
+Class.prototype = {
+	forward: function() {
+		console.log("The car is moving forward.");
+	},
+	backward: function() {
+		console.log("The car is moving backward.");
+	}
+}
+module.exports = Class;
+```
+
+在JavaScript中，一切都是对象，每一个对象都有一个prototype（原型）属性。prototype就像一个存储器，保存可访问变量和方法。在JavaScript继承当中，prototype被大量使用，这是因为它提供逻辑转移机制。
+
+我们将会理清一下module.exports和exports之间的区别。正如你所看到的，demo3-wheels.js中，我们直接为全局exports接口对象分配了init和info两个方法。事实上，exports是module.exports的一个参照，每一个依附于exports的方法或变量对外界都是可访问的。然而，如果我们直接为export对象分配新对象或者方法时，我们不应该在文件加载requiring进来后期望得到他的访问权。这时应该用module.exports。如下：
+
+```
+// demo4-file.js
+module.exports.a = 10;
+exports.b = 20;
+// demo4-app.js
+var file = require("./demo4-file");
+console.log(file.a, file.b);
+```
+
+app.js和file.js，在同一个目录下。如果运行node app.js，将会得到10和20的结果。然而，考虑到在改变demo4-file.js文件将会发生的事情，代码如下：
+
+```
+// demo5-file.js
+module.exports = { a: 10 };
+exports.b = 20;
+```
+在这个案例中我们将得到10和 undefined 结果。这是因为module.exports被分配了新的对象，而exports仍然指向原来的。
+
+#### 使用汽车发动机
+
+现在讲讲控制汽车模块的的demo6-engine.js。他有向前移动和向后移动的功能。因为逻辑被定义在单独的类中，并且类作为module.exports的值直接被传递，所以是有点不同的。此外，当我们导入一个功能而不是一个对象时，我们的变量应该用关键字new创建。我们将会看到车子使用new关键字如何起作用的，代码如下：
+
+```
+// demo6-engine.js
+var Engine = require("./demo3-engine");
+var e = new Engine();
+e.forward();
+```
+
+通过所需方法来返回模块，Node.js对其进行缓存。这样做的目的是阻止循环事件的阻塞以及增强呈现。这是同步操作的，如果没有缓存，Node.js将会重复相同的工作。通过一个文件夹的名字调用方法是比较好的，但是应该有一个package.json或者一个index.js文件在目录里面。在Node.js官方文档（http://nodejs.org）中,所有的机制都被很好的描述。需要注意的是，Node.js环境鼓励模块化编程。所有我们所需要的自带实现都在系统中，没必要使用第三方提供的模块。
+
+就像客户端代码，每一个Node.js模块都可以被继承。同样，正如在普通的JavaScript中我们也要写代码，我们可以使用众所周知的继承。如下：
+
+```
+// demo6-engine.js
+var Engine = require("./demo3-engine");
+var e = new Engine();
+e.forward();
+```
+
+Node.js事件为此提供有用的方法。现在讲讲，当我们想继承demo3-engine.js类和添加API方法在左右两个方向移动。可以像下面的代码一样：
+
+```
+// demo7-control.js
+var util = require("util");
+var Engine = require("./engine.js");
+var Class = function() {}
+util.inherts(Class, Engine);
+Class.prototype.left = function() {
+	console.log("The car is moving to left.");
+};
+Class.prototype.right = function() {
+	console.log("The car is moving to right");
+};
+module.exports = Class;
+```
+
+第一行获取一个参考到Node.js自带的utils模块。这个非常有用。第四行就是奇迹的发生。通过条用inherits方法，可以设置Class对象的新属性。记住每个新方法应该使用已经应用的属性。这就是为什么left和right在继承之后才被定义。最后，我们的车将可以在4个方向移动，如下：
+
+```
+// demo7-move.js
+var Control = require("./demo7-control.js");
+var c = new Control();
+
+c.forward();
+c.right();
+```
+
+### 理解跨模块沟通
+### 异步编程
+### 探索中间件架构
+### 组成与集成
+### 管理依赖
