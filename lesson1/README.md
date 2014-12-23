@@ -46,3 +46,9 @@ var handleRequest = function(req, res) {
 
 http.createServer(handleRequest).listen(88, "127.0.0.1");
 ```
+
+第一行初始化的http模块是用来运行web服务。getTime方法以字符串形式返回当前时间，respond方法向客户端浏览器发送简单的文本来报告进来的请求已经被处理。最有趣的方法是handleRequest，这是逻辑的入口点。创建一个为期5秒的while循环来模拟读取大文件。一旦运行服务，我们将能够作出HTTP请求到http://localhost:88。为演示单线程行为我们将同时发送两条行为。如下请求：
+
+- 探索中间件架构
+- 组成与继承
+- 管理依赖
