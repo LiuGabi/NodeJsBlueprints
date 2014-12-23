@@ -56,3 +56,40 @@ http.createServer(handleRequest).listen(88, "127.0.0.1");
 下面的截图是在检测两条url之后从服务器上打印输出的：
 
 !["Print"](img/test1.jpg)
+
+正如我们所看到的，第一条请求在13:57:11:66，响应时间在13:57:16:68，正是5秒之后。然而问题就在于当第一次请求完成之后第二次请求才被注册。这是因为第一次请求时Node.js线程正忙于处理while循环。
+当然，Node.js有解决这种I/O运行阻塞的方案。将他们转换成异步运行并接受回调。一旦运行完成，Node.js就移除回调，并通知这项工作已被处理。这种途径的好处就是当在等待获取I/O的结果时，服务器可以处理另外一条请求。处理外部事件并将这些转换成回调调用的实体被称为event循环。event循环充当一个非常好的管理者并且分配任务给不同的工作者。异步从不堵塞，并且只是等待事情的发生，例如一条文件写入成功的通知。
+现在，取代同步文件读取方式，我们使用异步代码改变我们的上诉例子。修改过的代码看起来像下面的代码：
+
+```
+var http = require("http");
+
+var getTime = function() {
+	var d = new Date();
+	return d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds() + ":" +d.getMilliseconds();
+};
+var respond = function(res, str) {
+	res.writeHead(200, {"Content-Type":"text/plain"});
+	res.end(str +"\n");
+	console.log(str + " " + getTime());
+};
+var handleRequest = function(req, res) {
+	if (req.url === "/favicon.ico") {
+		return;
+	}
+	console.log("new request: " + req.url + "  - " + getTime());
+
+	if (req.url == "/immediately") {
+		respond(res, "A");
+	} else {
+		setTimeout(function() {
+			// reading the file
+			respond(res, "B");
+		}, 5000);
+	}
+
+};
+```
+第一条请求仍然是在5秒后得到响应结果，然而，第二条请求在第一条请求后立刻发出。
+
+#### 在modules中组织代码逻辑
