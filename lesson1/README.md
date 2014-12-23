@@ -55,4 +55,4 @@ http.createServer(handleRequest).listen(88, "127.0.0.1");
 
 下面的截图是在检测两条url之后从服务器上打印输出的：
 
-!["Print"](lesson1/img/test1.jpg)
+!["Print"](img/test1.jpg)
