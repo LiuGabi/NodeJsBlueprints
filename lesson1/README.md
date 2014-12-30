@@ -266,8 +266,142 @@ air.on("started", function(data) {
 
 ### 异步编程
 
+正如我们所了解的，在无阻塞的环境中，例如Node.js，大部分处理都是异步的。一个请求来到我们的代码，我们的服务开始处理他，但是同时继续接受新的请求。例如，下面的文件读取：
 
+```
+// demo9.js
+fs.readFile("page.html", function(err, content) {
+	if (err) {
+		throw err;
+	}
+	console.log(content);
+});
+```
+
+readFile方法接受两个参数。第一个参数是所要读文件路径名，第二个参数则是一个方法，会在运行之后被调用。即使读取失败，回调反馈也会被解除。此外，由于每一件事都可以通过异步完成，也许结束会反馈一个很长的链接。对于这个有一个专门的术语——回调域。为了阐述这个问题，将会扩展之前的例子，使用文件内容来做一些操作，如下：
+
+```
+// demo9-1.js
+fs.readFile("page.html", function(err, content) {
+	if (err) {
+		throw err;
+	}
+	getData(function(data) {
+		applyDataToTheTemplate(content, data, function(resultedHTML) {
+			renderPage(resultedHTML, function() {
+				showPage(function() {
+					// finally, we are done
+				});
+			});
+		});
+	});
+});
+```
+
+如你所见，我们的代码看起来很糟糕。读起来和理解都很困难。有几十种工具可以帮助我们避免这种情况。然而，我们自己可以解决这种问题。首先要认识到这个问题。如果我们有超过四到五个嵌套回调，那么我们一定要重构我们的代码。使事情变得简单通常会带来很多帮助，那就使代码变得浅显易懂吧。之前的代码可以整理成更加友好和可读性的格式。例如，以下的代码：
+
+```
+// demo9-2.js
+var onFileRead = function(content) {
+	getData(function(data) {
+		applyDataToTheTemplate(content, data, dataApplied);
+	});
+}
+var dataApplied = function(resultedHTML) {
+	renderPage(resultedHTML, function() {
+		showPage(weAreDone);
+	});
+}
+var weAreDone = function() {
+	// finally, we are done
+}
+fs.readFile("page.html", function(err, content) {
+	if(err) throw err;
+	onFileRead(content);
+});
+```
+
+大部分的回调都是被独立定义的。因为方法的名字的描述，所以很清楚的知道正在发生的什么。然而，在很多复杂的情况下，由于你需要定义很多方法，这些技术也许不起作用。如果这就是问题所在，那么，在额外的模块中联合这些方法。如下：
+
+```
+// demo9-3.js
+var renderTemplate = require("./renderTemplate.js");
+renderTemplate("page.html", function() {
+	// we are done.
+});
+```
+
+你仍然需要一个回调，但是看起来就像是帮助器被隐藏并且只有主要功能是可见的。
+对于处理异步代码，另一个流行的的工具是promises 范例。我们已经讨论过JavaScript中的事件，promises类似这些。我们仍然等待一些事情的发生，和传递回调。可以说promises所代表的一个值是不可以即刻得到的，但是在未来可以得到。promises的语法使得异步代码看起来像同步的。如下，加载Twitter feed的模块：
+
+```
+// demo9-4.js
+var TwitterFeed = require("TwitterFeed");
+TwitterFeed.on("loaded", function(err, data) {
+	if(err) {
+		// ...
+	} else {
+		// ...
+	}
+});
+TwitterFeed.getData();
+```
+
+以上代码为loaded事件添加一个监听器，调用getData方法，这个方法是连接到Twitter以及获取信息的。如下：
+
+```
+// demo9-5.js
+var TwitterFeed = require("TwitterFeed");
+var promise = TwitterFeed.getData();
+promise.then(function(data) {
+	// ...
+}, function(err) {
+	// ...
+});
+```
+
+promise对象代表我们的数据。当promise对象成功时，第一个发送到then的方法会被调用。注意，在调用getData方法之后回调被注册。这就意味着对于获取数据的过程我们并不严格。我们对行为什么时候发生并不感兴趣。我们只关心什么时候完成以及结果是什么。我们可以从基于实现事件中发现不同之处。如下：
+
++ 处理错误的独立方法
++ 在调用then方法之前getData方法可以被调用。然而同样的事情是不可能的事件。在逻辑运行之前我们需要赋予监听器。另外，如果我们的任务是异步，15:26也许在我们监听赋予之前就被发送出去。
++ promise方法可以只失败或成功一次，然而特定的事件可以被解除多次，他的处理事件也可以被调用多次。
+
+promises真正派上用场的时候是我们把它们连接起来。为了阐述这一点，我们将使用相同的例子并保存tweets到一个数据库，代码如下：
+
+```
+// demo9-6.js
+var TwitterFeed = require("TwitterFeed");
+var Database = require("Database");
+var promise = TwitterFeed.getData();
+promise.then(function(data) {
+	var promise = Database.save(data);
+	return promise;
+}).then(function() {
+	// the data is saved
+	// into the database
+}).catch(function(err) {
+	// ...
+});
+```
+
+如果回调成功并返回一个新的promise，我们可以使用then第二次。同样的，我们不得不设置一个错误的可能性处理器。如果某些promises被注册，那么最下面的catch方法就会被解除。
+每一次的promise都有四种状态，我们应该现在提出这些，因为这个技术被广泛的使用。一个promsie可以是以下任一状态：
+
++ Fulfilled: 当和promise成功有关的行为时，promise将处于fulfilled状态。
++ Rejected: 当行为和promise失败有关时，promise处于rejected状态。
++ Pending: 当promise还未曾是fulfilled或者rejected状态时，他就处于pending状态。
++ Settled: 当promise曾是fulfilled或者rejected时，他就处于settled状态。
+
+JavaScript的原生异步使得我们的代码非常的有趣。然而，有时候会导致很多问题。下面是总结出来的解决这些问题的方法：
+
++ 尝试使用更多的方法取代闭合
++ 通过移除闭合的代码和定义顶级水平的方法来避免金字塔似的代码
++ 使用事件
++ 使用promsies
 
 ### 探索中间件架构
+
+
+
 ### 组成与集成
 ### 管理依赖
