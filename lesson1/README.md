@@ -216,7 +216,58 @@ c.right();
 ```
 
 ### 理解跨模块沟通
+
+ 我们已经找出如何将我们的代码逻辑化成模块。我们现在需要知道如何使他们相互通信。往往，人们将Node.js描述成事件驱动系统。由于我们已经在前面章节中看到了，Node.js在之前的请求完成之前可以接受一个新的请求事件，因此它也被称为无阻塞。这正是高效和可扩展性的体现。这些事件非常强大，并且告诉其他模块正在进行的一切。他们带来封装，这在模块化编程中非常重要。让我们添加一些事件到汽车案例中，这个案例之前有讨论过的。比方说，我们有空调，我们需要知道什么时候开启它。这样逻辑实现包含两部分。第一部分是空调模块。需要发送一个事件来指明动作的开始。第二部分是其他的代码来监听开始动作。我们将创建一个新的air.js文件，包含逻辑响应空调。代码如下
+
+```
+// demo8-air.js
+var util = require("util");
+var EventEmitter = require("events").EventEmitter;
+var Class = function() {}
+util.inherits(Class, EventEmitter);
+Class.prototype.start = function() {
+	this.emit("started");
+};
+module.exports = Class;
+```
+
+我们的类继承了Node.js的EventEmitter模块。它包含如emit和on等方法，这些方法帮助我们建立基础事件通信。只有一种自定义方法：start。这是一个简单的事件触发以表明空调被开启。代码如下：
+
+```
+// demo8-car.js
+var AirConditioning = require("./demo8-air.js");
+var air = new AirConditioning();
+air.on("started", function() {
+	console.log("Air conditionning started");
+});
+air.start();
+```
+这个例子向我们展示了模块之间的通信。因为封装，这些都变得非常强大。这个模块知道自己的职责，而且对系统中的其他部分运行不感兴趣。它简单的做着自己的工作，并发送通知。例如，在之前的代码中，AirConditioning类并不知道自己开启之后我们要输出信息。他只知道一部分事件要被发送。
+
+往往，在发射器事件中我们需要发送一个数据。这是很简单的，我们只需根据事件的名字传递另一个参数。这里我们就展示了如何发送一个status属性：
+
+```
+Class.prototype.start = function() {
+	this.emit("started", { status: "cold" });
+};
+```
+
+连接到该事件的对象包含一些关于空调模块的信息。在监听事件中，相同的对象将可利用。下面的代码块向我们展示了如何获取status变量的值：
+
+```
+air.on("started", function(data) {
+	console.log("Status: " + data.status);
+});
+```
+
+有一个设计模式描述的是过程。被称为Observer。在这个模式的上下文中，空调模块被称为subject，汽车模块被称为observer。Subject转播信息和事件给观察者，告诉他们有事情发生了。
+
+如果需要移除一个监听器，Node.js有一个叫做removeListener。我们甚至允许标准的观察者使用setMaxListeners。总体而言，这些事件是最好的方式之一来疏导你的逻辑部分。最主要的好处是隔离模块，但是仍然和你的应用其他部分具有高度联系。
+
 ### 异步编程
+
+
+
 ### 探索中间件架构
 ### 组成与集成
 ### 管理依赖
