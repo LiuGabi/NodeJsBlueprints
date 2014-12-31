@@ -405,7 +405,7 @@ Node.js框架是基于中间架构的。这是因为架构带来模块化。在�
 
 !["Print"](img/test4.png)
 
-Connect[(http://nodejs.org)](http://nodejs.org)
+Connect[(https://github.com/senchalabs/connect)](https://github.com/senchalabs/connect)
 
 ### 组成与集成
 ### 管理依赖
