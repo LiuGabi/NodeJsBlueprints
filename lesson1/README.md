@@ -405,7 +405,47 @@ Node.js框架是基于中间架构的。这是因为架构带来模块化。在�
 
 !["Print"](img/test4.png)
 
-Connect[(https://github.com/senchalabs/connect)](https://github.com/senchalabs/connect)
+Connect[(https://github.com/senchalabs/connect)](https://github.com/senchalabs/connect)是第一种实现这种模式的框架的一种。在Node.js的上下文中中间件是一个方法，这个方法接受请求、响应以及下一个回调。前面两个参数代表中间件的输入输出。最后一个是一种方式，用来在列表中传递流到下一个中间件。如下：
+
+```
+// demo10-0.js
+var connect = require("connect"),
+	http = require("http");
+
+var app = connect()
+	.use(function(req, res, next) {
+		console.log("That's my first middleware");
+		next();
+	})
+	.use(function(req, res, next) {
+		console.log("That's my second middleware");
+		next();
+	})
+	.use(function() {
+		console.log("end");
+		res.end("Hello word");
+	});
+
+http.createServer(app).listen(3000);
+```
+
+connect的use方法接受中间架构。通常，中间架构是一个简单的方法。我们可以写任何我们想让他做的事。最重要的是在最后调用next方法。next方法传递流道下一个中间架构。通常，我们将需要在数据和中间架构间进行转换。修改请求或相应对象是很常见的，因为这些是输入输出的常见模块。可以为请求输出对象赋予新的属性，并且可以在一个中间架构列表中获得，如下：
+
+```
+.use(function(req, res, next) {
+	req.data = { value: "middleware" };
+	next();
+})
+.use(function(req, res, next) {
+	console.log(req.data, value);
+});
+```
+
+request和response对象在每个方法里都是相同的。也就是说，中间架构分享相同的scope，他们完全相同。我们可以把不同开发者写的模块组织起来做任务。
 
 ### 组成与集成
+
+在前面的部分里，我们了解到如何创建模块，理解模块之间的关联，如何使用它们。现在就稍微了解下如何构建模块。有数十种方式来构建好的应用。同样也有针对于此而写的一些比较好的书籍，但是我们只需集中到两个比较常用的技术上：组成和集成。理解两者之间的不同是非常重要的。他们都有pros和cons。在很多案例中，他们的包依赖于当前项目。
+对于组成来说，前面的car类是一个很好的例子。car对象的功能通过其他小对象建立。因此，主要模块事实将自己的工作委托到其他的类。
+
 ### 管理依赖
