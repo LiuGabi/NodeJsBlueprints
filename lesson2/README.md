@@ -212,6 +212,61 @@ process.evn申明提供一个访问定义在当前开发环境的变量的权限
 
 ### 路由管理
 
+应用的输入是路由。用户在指定URL访问我们的页面，并且我们必须匹配这个URL到指定的逻辑。在Express上下文中，这可以很容易做到：
+
+```
+var controlller = function(req, res, next) {
+    res.send("response");
+}
+app.get("/example/url", controlller);
+```
+
+我们甚至有控制整个HTTP的方法，那就是，我们能够捕获POST、PUT或者DELETE。如果我们是想保留一个路径地址而不是应用一个不同的逻辑，那么这个是很方便的。例如：
+
+```
+var getUsers = function(req, res, next) {
+    // ...
+}
+var createUser = function(req, res, next) {
+    // ...
+}
+app.get("/users", getUsers);
+app.get("/users", createUser);
+```
+
+路径仍然相同，/users，但是如果一个POST请求那个连接，应用将会试图创建一个新的用户。否则，如果方法是GET，将会返回所有注册成员列表。有一个方法，app.all，我们可以用它来一次性处理所有的方法。如下：
+
+```
+app.all("/", serverHomePage);
+```
+
+在Express中，有一些关于路由的趣事。我们也许传递处理很多处理。这就意味着我们可以创建一系列方法都对应到一个URL。例如，我们需要知道用户是否登录，有个模块专为此。我们可以添加另一个验证当前用户和获取变量到请求的对象的方法，如下：
+
+```
+var isUserLogged = function(req, res, next) {
+    req.userLogged = Validator.isCurrentUserLogged();
+    next();
+}
+var getUser = function(req, res, next) {
+    if (req.userLogged) {
+        res.send("You are logged in. Hello!");
+    } else {
+        res.send("Please log in first.");
+    }
+}
+app.get("/user", isUserLogged, getUser);
+```
+
+Validator类是一个类，用来检测当前用户session。这个思想是简单地，我们添加另一个处理器，这个处理器充当额外的中间件。呈现所需的行为之后，我们调用next方法，这个方法传递流到下一个处理器，getUser。因为响应和请求对象对于所有中间件是相同的，所以我们有权限访问userLogged变量。这就是使得Express真正灵活的原因。有很多非常详细的可得到的，但他们是自选的。最后，创建一个简单地例子来实现相同的逻辑。
+
+
+
+
+
+
+
+
+
 
 
 
