@@ -364,7 +364,22 @@ HTML生成看起来如下：
 
 ### 日志系统
 
-我们已经了解了Express的主要说明。
+我们已经了解了Express的主要说明。现在就行动起来。接下来的几个页面呈现一个简单地网站，在这里只要用户登录，他们户可以读取。现在开始建立应用。我们开始使用Express命令行工具。通过 npm install -g express-gennerator安装。我们为这个例子创建了一个新的文件夹，通过终端导航，以及执行 express --css less site。一个新的目录site将会被创建。如果我们运行npm install，Exprss就会下载所有需要的依赖。如之前所见，默认情况下我们有两个路由和两个控制器。对于简单地例子，我们将只使用第一个，app.use(“/”, routes)。如下，改变views/index.jade文件内容：
+
+```
+doctype html
+html
+    head
+        title = title
+        link(rel=’stylesheet’, href=’/stylesheets/style.css)
+    body
+        h1 = title
+        hr
+        p That’s a simple application using Express.
+```
+
+现在，如果我们运行node ./bin/www 和open http://127.0.0.1:3000，我们将会看到page.Jade用缩进来解析我们的模板。因此我们不应该混淆tabs和spaces。否则，我们将得到错误。
+
 
 
 
