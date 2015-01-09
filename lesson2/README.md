@@ -378,7 +378,7 @@ html
         p That’s a simple application using Express.
 ```
 
-现在，如果我们运行node ./bin/www 和open http://127.0.0.1:3000，我们将会看到page.Jade用缩进来解析我们的模板。因此我们不应该混淆tabs和spaces。否则，我们将得到错误。
+现在，如果我们运行node ./bin/www 和 open http://127.0.0.1:3000，我们将会看到page.Jade用缩进来解析我们的模板。因此我们不应该混淆tabs和spaces。否则，我们将得到错误。
 
 
 
