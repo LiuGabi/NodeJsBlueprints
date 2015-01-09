@@ -259,9 +259,112 @@ app.get("/user", isUserLogged, getUser);
 
 Validator类是一个类，用来检测当前用户session。这个思想是简单地，我们添加另一个处理器，这个处理器充当额外的中间件。呈现所需的行为之后，我们调用next方法，这个方法传递流到下一个处理器，getUser。因为响应和请求对象对于所有中间件是相同的，所以我们有权限访问userLogged变量。这就是使得Express真正灵活的原因。有很多非常详细的可得到的，但他们是自选的。最后，创建一个简单地例子来实现相同的逻辑。
 
+### 处理动态URLs和HTML表单
 
+Express框架也支持动态dynamicURLs。在我们的系统中每个用户都有单独的页面。那些页面的地址看起来如下：
 
+```
+/user/45/profile
+```
 
+在数据库中，45是用户的唯一编号。对于这种功能使用一种功能是很正常的。我们不能真正为每个用户定义不同的功能。这个问题可以通过以下的语法解决：
+
+```
+var getUser = function(req, res, next) {
+    res.send("Show user width id = " + req.params.id);
+}
+app.get("/user/:id/profile", getUser);
+```
+
+事实上，路由像正则表达式，里面有变量。之后，这个变量可以在req.params对象中获取。我们可以有一个以上的变量。如下是一个轻量级的单更复杂的例子：
+
+```
+var getUser = function(req, res, next) {
+    var getId = req.params.id;
+    var actionToPerform = req.params.action;
+    res.send("User (" + userId +") : " + actionToPerform );
+}
+app.get("/user/:id/profile/:action", getUser);
+```
+
+如果我们打开http://localhost:3000/user/451/profile/edit, 我们会看到User (451) : edit作为一个相应结果。这就是怎样得到好看并有好的URL。
+
+当然，有时候我们需要通过GET或POST传递参数。可能有一个链接像http://localhost:3000/user?action=edit。解析他很简单，我们只需要本地url模块，这个模块有一些有用的功能来解析URLs：
+
+```
+var getUser = function(req, res, next) {
+    var url = require("url");
+    var url_parts = url.parse(req.url, true);
+    var query = url_parts.query;
+    res.send("User: " + query.action);
+}
+app.get("/user", getUser);
+```
+
+一旦模块解析URL，我们的GET参数被存在.query对象中。POST变量不一样。我们需要新的中间件来处理它。幸运的是，Express有这个，如下：
+
+```
+app.use(express.bodyParser());
+var getUser = function(req, res, next) {
+    res.send("User: " + req.body.action);
+}
+app.post("/user", getUser);
+```
+
+express.bodyParser()中间件用POST数据填充req.body对象。我们必须把HTTP由.get改成 .post或者.all。
+
+如果我们想在Express中读取cookies，我们可以使用cookieParser中间件。类似body解析器，需要被安装和添加到package.json文件。下面的例子就是设置中间件和证明它的用法：
+
+```
+var cookieParser = require("cookie-parser");
+app.use(cookieParser("optional secret string"));
+app.get("/", function(req, res, next) {
+    var prop = req.cookies.propName;
+});
+```
+
+### 返回响应
+
+返回响应
+我们的服务接受请求，做着相同的事情，最后，发送响应到客户端浏览器。这可以是HTML,JSON,XML或者二进制数据。正如我们所知，默认情况下Express中的每个中间件接受两个对象，request和response。respond中的方法可以发送和响应客户端。每一个响应必须有一个正确的content type和length。Express指定过程是通过提供功能和来设置HTTP头和发送内容到浏览器。大部分情况我们将使用.send方法，如下：
+
+```
+res.send(“simple text”);
+```
+
+用硬盘上的文件来响应是很有可能的。如果我们不使用框架，那么我们就需要读取文件，设置当前的HTTP头，以及发送内容。然而，Express提供.sendfile方法，这些方法封装了如下的操作：
+
+```
+res.sendfile(__dirname + "/images/photo.jpg");
+```
+
+再次，内容类型是自动设置的；这次是基于文件名字的扩展。
+
+当使用用户界面创建websites或者应用时，我们通常需要服务于一个HTML。当然，我们可以在JavaScript中手动写一个，但是他的优点在于使用模板引擎。这就意味着我们都保存到外部文件，引擎都从这里读取标记。用数据填充这些，最后，提供ready-to-show内容。在Express里，整个过程概括为一种方法，.render。然而，为了正确的工作，我们必须指示框架保证使用哪个框架：
+
+```
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "jade");
+```
+
+说下下面的模板(/views/index.jade)：
+
+```
+h1 = title;
+p Welcome to #{title}
+```
+
+HTML生成看起来如下：
+
+```
+<h1>Page title here</h1><p>Welcome to Page title here</p>
+```
+
+如果我们传递第三个参数，function，我们将访问已经生成的HTML。然而它不会作为一个响应被发送到浏览器。
+
+### 日志系统
+
+我们已经了解了Express的主要说明。
 
 
 
