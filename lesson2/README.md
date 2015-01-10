@@ -380,9 +380,98 @@ html
 
 现在，如果我们运行node ./bin/www 和 open [http://127.0.0.1:3000]()，我们将会看到page.Jade用缩进来解析我们的模板。因此我们不应该混淆tabs和spaces。否则，我们将得到错误。
 
+下一步，我们需要保护我们的内容。我们检测正确的用户是否有sessions创建；如果没有，一个登录表单就会显示出来。这是一个合适的创建新的中间件。
 
+在Expess中使用sessions，要安装额外的模块：express-sessions。我们需要打开package.json文件，并添加下面的一行代码：
 
+```
+“express-sessions”: “~1.0.0”
+```
 
+一旦我们这样做了之后，快速运行npm intsall将会带来模块到我们的应用中来。所有我们必须要做的就是使用它。如下app.js代码：
+
+```
+var session = require('express-session');
+app.use(session({ secret: 'app', cookie: {maxAge: 60000}}));
+
+var verifyUser = function(req, res, next) {
+    if (req.session.loggedIn) {
+        next();
+    } else {
+        res.send("show login form");
+    }
+}
+app.use('/', verifyUser, routes);
+```
+
+注意，我们改变了原始的app.use(‘/’, routes)行。Session中间件被初始化并添加到Express中。veriFyUser 方法在页面渲染之前就被调用。它使用req.session对象，并检查一个loggedIn变量是否被定义，以及它的值是不是true。如果我们再次运行这个脚本，我们将会看到show login form文本在每次请求中都会显示。这就像是因为没有代码按照我们想得方式设置session。我们需要用户填入他们的用户名和密码的表单。我们将处理表单的结果，如果证书是正确的，loggedIn变量将会被设置为true。让我们创建一个新的Jade模块， /view/login.jade:
+
+```
+doctype html
+html
+    head
+        title= title
+        link(rel='stylesheet', href='/stylesheets/style.css')
+    body
+        h1= title
+        hr
+        form(methord='post')
+            label Username:
+            br
+            input(type='text', name='username')
+            br
+            input(type='submit')
+```
+
+代替用res.send(“show login form”)发送文本，我们应该渲染新的模板：
+
+```
+res.render(“login”, {title: “Please log in.”});
+```
+
+我们选择POST作为表单的方法。我们需要中间件来填充req.body对象的用户数据，如下：
+
+```
+app.use(bodyParser());
+```
+
+处理提交的用户名和密码如下：
+
+```
+var verifyUser = function(req, res, next) {
+    if (req.session.loggIn) {
+        next();
+    } else {
+        var username = "admin", password = "admin";
+        if (req.body.username === username && req.body.password === password) {
+            req.session.loggIn = true;
+            res.redirect('/');
+        } else {
+            res.render("login", {title: "Please log in."});
+        }
+    }
+}
+```
+
+有效的证书都被设置为admin/admin。在一个真实的应用中，我们也许需要访问一个数据库或者从其他的地方获取信息。在代码中放置用户名和密码不是一个很好思想；然而，在我们的这个小试验中这样尝试还是不错的。之前的代码检验传递的数据是否与我们预定义的值相匹配。如果所有都是正确的，那就设置session，在这之后用户被转到home page 页面。
+
+一旦你登陆了，你就应该能够退出。在index page页面添加一个链接：
+
+```
+a(href='/logout') logout
+```
+
+一旦用户点击这个链接，他们将被跳转到一个新的页面。我们只需要为新的路由创建处理器，移除掉session，并将他们转到 index page，在这里登录表单被重定向。下面就是退出处理器：
+
+```
+var logout = function(req, res, next) {
+    req.session.loggIn = false;
+    res.redirect('/');
+}
+app.all('/logout', logout);
+```
+
+设置loggedIn参数为 false 足够可以使session无效的。重定向发送用户到他们所来的那个相同内容的页面。然而，同时，这些内容被隐藏，登录表单显示。
 
 
 
