@@ -58,11 +58,11 @@ Express和其他模块一样。它在包得注册中有它自己的位置。如�
 ```
 
 这些都是必须添加的。更精确的说，我们必须强调强制性的区域是name和version。然而，添加依赖和我们模块会好些，特别是如果我们想要在注册处发布我们工作，这些信息都是相当的重要。否则，其他的开发者将不知道我们的库正在做什么。当然，有一大堆的其他的区域，例如贡献者，关键字，或者开发依赖，我们将坚持有限的选项，因此我们聚焦在Express。
-一旦我们有放置在项目文件夹里面的package.json文件，我们必须在可控制台调用npm install。通过这样，包管理器将创建一个node_modules文件夹以及存放Express和他的依赖。如下：
+一旦我们有放置在项目文件夹里面的package.json文件，我们必须在可控制台调用**npm install**。通过这样，包管理器将创建一个node_modules文件夹以及存放Express和他的依赖。如下：
 
 !["Express"](img/test1.png)
 
-第三行像我们展示的是版本号，接下来的几行是Express所依赖的模块。现在，我们准备实验Express。如果我们打出require(“express”)，Node.js将开始寻找在本地node_modules目录里的库。因为我们不使用绝对路径，这是通常的习惯。如果我们没有运行npm install 命令行，我们将被Error: Cannot find module ‘express’提醒。
+第三行像我们展示的是版本号，接下来的几行是Express所依赖的模块。现在，我们准备实验Express。如果我们打出require(“express”)，Node.js将开始寻找在本地node_modules目录里的库。因为我们不使用绝对路径，这是通常的习惯。如果我们没有运行**npm install 命令行，我们将被Error: Cannot find module ‘express’提醒**。
 
 #### 使用命令行工具
 
@@ -404,7 +404,7 @@ var verifyUser = function(req, res, next) {
 app.use('/', verifyUser, routes);
 ```
 
-注意，我们改变了原始的app.use(‘/’, routes)行。Session中间件被初始化并添加到Express中。veriFyUser 方法在页面渲染之前就被调用。它使用req.session对象，并检查一个loggedIn变量是否被定义，以及它的值是不是true。如果我们再次运行这个脚本，我们将会看到show login form文本在每次请求中都会显示。这就像是因为没有代码按照我们想得方式设置session。我们需要用户填入他们的用户名和密码的表单。我们将处理表单的结果，如果证书是正确的，loggedIn变量将会被设置为true。让我们创建一个新的Jade模块， /view/login.jade:
+注意，我们改变了原始的app.use(‘/’, routes)行。**Session要在cookie后面使用**。Session中间件被初始化并添加到Express中。veriFyUser 方法在页面渲染之前就被调用。它使用req.session对象，并检查一个loggedIn变量是否被定义，以及它的值是不是true。如果我们再次运行这个脚本，我们将会看到show login form文本在每次请求中都会显示。这就像是因为没有代码按照我们想得方式设置session。我们需要用户填入他们的用户名和密码的表单。我们将处理表单的结果，如果证书是正确的，loggedIn变量将会被设置为true。让我们创建一个新的Jade模块， /view/login.jade:
 
 ```
 doctype html
