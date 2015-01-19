@@ -68,6 +68,47 @@ function HeaderController ($scope) {
 
 每一个控制器作用域。那个区域称之为scope。在我们的案例中，HeaderController定义（title）变量。AngularJS有一个很精彩的依赖注入系统。幸运的是，因为这个机制，$scope变量是自动初始化并传递到我们的方法。ng-controller属性被指令调用，他就是，一个属性，对AngularJS有意义的属性。我们有很多指令可以用。也许那就是框架中最好的一个之一。我们可以在模块里面直接实现复杂的逻辑，例如，数据绑定、过滤或者模块化。
 
+#### 数据绑定
+
+数据绑定是一个自定更新视图一旦模块更新的过程。由于很早就提过，我可以在应用部分JavaScript改变一个变量，随即HTML部分将自动更新。我们不需要创建一个引用DOM元素或附加事件监听器。所有事情都被框架处理。继续阐述前面的例子，如下：
+
+```
+<html ng-app>
+	<head>
+		<script src="angular.min.js"></script>
+	</head>
+	<body>
+		<header ng-controller="HeaderController">
+			<h1>{{title}}</h1>
+			<a href="#" ng-click="updateTitle()">change title</a>
+		</header>
+	</body>
+</html>
+```
+
+一个链接被添加，它包含ng-click指令。updateTitle方法是一个定义在控制里面的方法，如下：
+
+```
+function HeaderController($scope) {
+	$scope.title = "Hello world";
+	$scope.updateTitle = function() {
+		$scope.title = "That's a new title.";
+	}
+}
+```
+
+我们不关心DOM元素以及{{title}}变量在哪。我们只需改变$scope属性和每件事的工作。当然我们有input域和我们想绑定他们的值。如果在这种情况，ng-model指令可以被应用。如下：
+
+```
+<header ng-controller="HeaderController">
+	<h1>{{title}}</h1>
+	<a href="#" ng-click="updateTitle()">change title</a>
+	<input type="text" ng-model="title" /> 
+</header>
+```
+
+在输入字段里面的被绑定到相同的标题变量。这次，我们不需要编辑控制器。AngularJS自动改变h1标签的内容。
+
 ### 选择和初始化数据库
 ### 使用Angular开发客户端
 ### 实现控制面板
