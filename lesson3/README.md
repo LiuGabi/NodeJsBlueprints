@@ -109,6 +109,28 @@ function HeaderController($scope) {
 
 在输入字段里面的被绑定到相同的标题变量。这次，我们不需要编辑控制器。AngularJS自动改变h1标签的内容。
 
+#### 使用模块封装逻辑
+
+使用控制器是非常棒的一件事。然而把所有事情都放在全局定义的方法里并不是一个好的实践。这几是为什么使用模块系统比较好。如下是模块的定义：
+
+```
+angular.module('HeaderModule', []);
+```
+
+第一个参数是模块的名字，第二个参数是一个数组，这个数组保存模块的依赖。通过依赖，我的意思是其他的模块、服务、或者常用的其他东西，这些我们可以在模块内部使用的。同样需要被设置为ng-app指令的一个值。如下：
+
+```
+angular.module('HeaderModule', [])
+.controller('HeaderController', function($scope) {
+$scope.title = "Hello world";
+$scope.updateTitle = function() {
+$scope.title = "That's a new title.";
+}
+});
+```
+
+因此，第一行定义了一个模块。我们可以将模块中不同的方法和其中的控制器方法连接起来。接下来将我们的代码放到模块里面，我们将封装逻辑。这是一个很好的建筑标志。当然，使用模块，我们能获得不同的功能，例如过滤器、指令、常用的服务等。
+
 ### 选择和初始化数据库
 ### 使用Angular开发客户端
 ### 实现控制面板
