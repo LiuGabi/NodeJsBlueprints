@@ -122,10 +122,10 @@ angular.module('HeaderModule', []);
 ```
 angular.module('HeaderModule', [])
 .controller('HeaderController', function($scope) {
-$scope.title = "Hello world";
-$scope.updateTitle = function() {
-$scope.title = "That's a new title.";
-}
+	$scope.title = "Hello world";
+	$scope.updateTitle = function() {
+		$scope.title = "That's a new title.";
+	}
 });
 ```
 
@@ -205,7 +205,7 @@ AngularJS是框架领导者之一，不仅因为它是由谷歌制造的，而�
 
 ```
 "dependencies": {
-"mongodb": "1.3.20"
+	"mongodb": "1.3.20"
 }
 ```
 
